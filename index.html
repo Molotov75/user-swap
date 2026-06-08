@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>motolov | Username Swapper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+        body { background:#0a0a0a; color:#f5f5f5; min-height:100vh; }
+        #rain-container { position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; pointer-events:none; overflow:hidden; }
+        .rain-drop { position:absolute; width:2px; background:linear-gradient(transparent,rgba(180,220,255,0.8)); animation:fall linear infinite; opacity:0.7; }
+        @keyframes fall { to { transform:translateY(100vh); } }
+
+        .container { max-width:720px; margin:80px auto; padding:20px; }
+        .card { background:#111; border:1px solid #333; border-radius:20px; padding:35px; }
+        input, textarea, select, button { width:100%; padding:16px; margin:12px 0; border-radius:12px; border:none; }
+        input, textarea, select { background:#1a1a1a; color:white; }
+        button { background:#6d5dfc; color:white; font-weight:600; cursor:pointer; }
+        button:hover { background:#5b4be8; }
+        .log { background:#000; padding:15px; height:300px; overflow-y:auto; font-family:monospace; border-radius:12px; margin:15px 0; }
+    </style>
+</head>
+<body>
+    <div id="rain-container"></div>
+
+    <div class="container">
+        <div class="card">
+            <h1 style="text-align:center;margin-bottom:25px;">motolov Username Swapper</h1>
+            
+            <input type="text" id="key" placeholder="License Key or Molotov" />
+            <button onclick="login()">Login</button>
+
+            <div id="panel" style="display:none;">
+                <textarea id="session1" rows="3" placeholder="Session ID - Account 1 (Main)"></textarea>
+                <textarea id="session2" rows="3" placeholder="Session ID - Account 2 (Target)"></textarea>
+                <button onclick="startSwap()">🚀 EXECUTE SWAP</button>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createRain() {
+            const c = document.getElementById('rain-container');
+            for(let i=0; i<100; i++){
+                const d = document.createElement('div');
+                d.className='rain-drop';
+                d.style.left = Math.random()*100 + 'vw';
+                d.style.animationDuration = (Math.random()*0.5 + 0.35) + 's';
+                d.style.animationDelay = Math.random()*-2 + 's';
+                c.appendChild(d);
+            }
+        }
+        createRain();
+
+        function log(msg, type="info"){
+            const el = document.getElementById('log');
+            const color = type==="success" ? "#4ade80" : type==="error" ? "#f87171" : "#aaa";
+            el.innerHTML += `<span style="color:${color}">[${new Date().toLocaleTimeString()}] ${msg}</span><br>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        async function login(){
+            const key = document.getElementById('key').value.trim();
+            if(!key) return alert("Enter key");
+            document.getElementById('panel').style.display = 'block';
+            log("✅ Login Successful", "success");
+        }
+
+        async function startSwap(){
+            const s1 = document.getElementById('session1').value.trim();
+            const s2 = document.getElementById('session2').value.trim();
+            if(!s1 || !s2) return alert("Enter both session IDs");
+
+            log("🔄 Starting Swap...", "info");
+
+            const res = await fetch('/api/swap', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({session1: s1, session2: s2})
+            });
+
+            const data = await res.json();
+            log(data.message, data.success ? "success" : "error");
+        }
+    </script>
+</body>
+</html>
