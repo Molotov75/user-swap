@@ -1,21 +1,22 @@
-from flask import Flask, send_from_directory, request, jsonify
-import threading
-import time
-
-app = Flask(__name__)
-
-# Serve the frontend
-@app.route('/')
-def home():
-    return send_from_directory('.', 'index.html')
-
-@app.route('/api/swap', methods=['POST'])
-def swap():
+@app.route('/api/login', methods=['POST'])
+def login():
     data = request.json
-    thread = threading.Thread(target=lambda: print("Swap started for", data))
-    thread.start()
-    return jsonify({"success": True, "message": "Swap process started..."})
+    key = data.get('key')
 
-if __name__ == '__main__':
-    print("🚀 motolov Swapper Running")
-    app.run(host='0.0.0.0', port=5000)
+    # Admin Key (Hidden)
+    if key == "Molotov" or key == "molotov":
+        return jsonify({"success": True, "message": "Admin Access Granted"})
+
+    # Real KeyAuth Check
+    try:
+        url = f"https://keyauth.cc/api/1.2/?type=login&key={key}&app=611AM's%20Application&ownerid=unw3tp6AeU&version=1.0&secret=ced6a6d57378fb298a4c7f453cb3720614b3e4ec77cd9c090ea982fa0d5e8508"
+        
+        response = requests.get(url)
+        result = response.json()
+
+        if result.get('success'):
+            return jsonify({"success": True, "message": "License Validated"})
+        else:
+            return jsonify({"success": False, "message": result.get('message', 'Invalid Key')})
+    except:
+        return jsonify({"success": False, "message": "Connection Error"})
