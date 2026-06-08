@@ -1,22 +1,40 @@
+from flask import Flask, request, jsonify, send_from_directory
+import threading
+import time
+
+app = Flask(__name__)
+
+# Serve the frontend
+@app.route('/')
+def home():
+    return send_from_directory('.', 'index.html')
+
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
     key = data.get('key')
+    
+    if key in ["Molotov", "molotov"]:
+        return jsonify({"success": True, "message": "Admin Access"})
+    
+    # Simple KeyAuth simulation (you can replace with real later)
+    if len(key) > 5:
+        return jsonify({"success": True, "message": "Key Valid"})
+    return jsonify({"success": False, "message": "Invalid Key"})
 
-    # Admin Key (Hidden)
-    if key == "Molotov" or key == "molotov":
-        return jsonify({"success": True, "message": "Admin Access Granted"})
+@app.route('/api/swap', methods=['POST'])
+def swap():
+    data = request.json
+    thread = threading.Thread(target=perform_swap, args=(data,))
+    thread.daemon = True
+    thread.start()
+    return jsonify({"success": True, "message": "Swap process started..."})
 
-    # Real KeyAuth Check
-    try:
-        url = f"https://keyauth.cc/api/1.2/?type=login&key={key}&app=611AM's%20Application&ownerid=unw3tp6AeU&version=1.0&secret=ced6a6d57378fb298a4c7f453cb3720614b3e4ec77cd9c090ea982fa0d5e8508"
-        
-        response = requests.get(url)
-        result = response.json()
+def perform_swap(data):
+    print(f"[{time.strftime('%H:%M:%S')}] Swap started for {data.get('session1')} -> {data.get('session2')}")
+    time.sleep(3)
+    print("✅ Swap simulation completed")
 
-        if result.get('success'):
-            return jsonify({"success": True, "message": "License Validated"})
-        else:
-            return jsonify({"success": False, "message": result.get('message', 'Invalid Key')})
-    except:
-        return jsonify({"success": False, "message": "Connection Error"})
+if __name__ == '__main__':
+    print("🚀 motolov Swapper Running")
+    app.run(host='0.0.0.0', port=5000)
